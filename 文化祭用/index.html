@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文化祭スタンプラリー</title>
+    <!-- Start KARTE Tag -->
+<script>!function(n){if(!window[n]){var o=window[n]=function(){var n=[].slice.call(arguments);return o.x?o.x.apply(0,n):o.q.push(n)};o.q=[],o.i=Date.now(),o.allow=function(){o.o="allow"},o.deny=function(){o.o="deny"}}}("krt")</script>
+<script async src="https://cdn-edge.karte.io/5dd5c63d55047e339deb6d4081206d21/edge.js"></script>
+<!-- End KARTE Tag -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f0f0f0; }
+        #reader { margin: 0 auto; width: 300px; background: white; border-radius: 10px; }
+        .stamp-box { display: flex; justify-content: center; gap: 20px; margin-top: 30px; }
+        .stamp { width: 80px; height: 80px; border: 2px dashed #999; border-radius: 50%; line-height: 80px; background: white; color: #999; }
+        .stamp.get { border: 2px solid #ff4500; background: #ffe4e1; color: #ff4500; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>✨文化祭スタンプラリー✨</h1>
+    
+    <!-- カメラ画面 -->
+    <div id="reader"></div>
+    
+    <!-- メッセージ表示 -->
+    <h3 id="result" style="color: #333; margin-top: 20px;">QRコードをかざしてね！</h3>
+
+    <!-- 増やしたいとき同じようなものを増やし、名前を変えたいときは後ろとidの名前を変える -->
+    <div class="stamp-box">
+        <div id="stamp-1" class="stamp">スポット1</div>
+        <div id="stamp-2" class="stamp">スポット2</div>
+        <div id="stamp-3" class="stamp">スポット3</div>
+    </div>
+
+    <script>
+        <!----スタンプを思い出す処理---->
+        let myStamps = JSON.parse(localStorage.getItem('my_stamps')) || [];
+        updateStampDisplay();
+
+        // カメラの準備
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+
+        // QRコードが読み込めたら実行される処理（中身を書き換える）
+        function onScanSuccess(decodedText) {
+            // 認める合言葉のリスト（QRコードの中身にする文字を羅列）
+            const validSpots = ["spot1", "spot2", "spot3"];
+            
+            if (validSpots.includes(decodedText)) {
+                //このコードでカメラを止める
+                html5QrcodeScanner.clear();
+                if (!myStamps.includes(decodedText)) {
+                    myStamps.push(decodedText);
+                    localStorage.setItem('my_stamps', JSON.stringify(myStamps));
+
+                    document.getElementById('result').innerHTML = 
+                        "🎉 スタンプをゲットしました！<br><button onclick='location.reload()'>次のスポットを探す</button>";
+                        
+                    updateStampDisplay(); 
+                } else {
+                    document.getElementById('result').innerHTML = 
+                        "⚠️ そのスタンプはもう持っているよ！<br><button onclick='location.reload()'>カメラを再開する</button>";
+                }
+            } else {
+                document.getElementById('result').innerText = "❌ 関係のないQRコードです";
+            }
+        }
+
+        // スタンプの表示を更新する関数
+        function updateStampDisplay() {
+            myStamps.forEach(stampId => {
+                // spot1 なら stamp-1 の見た目を変える
+                let elementId = stampId.replace('spot', 'stamp-');
+                let target = document.getElementById(elementId);
+                if (target) {
+                    target.classList.add('get');
+                    target.innerText = "済";
+                }
+            });
+
+            // スタンプの個数分の数myStamps.length === ここの数を変える
+            if (myStamps.length === 3) {
+                document.getElementById('result').innerText = "🏆 Congratulations！全スポット制覇！";
+            }
+        }
+
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>
